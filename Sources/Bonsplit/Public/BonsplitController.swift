@@ -30,6 +30,43 @@ public final class BonsplitController {
         self.internalController = SplitViewController()
     }
 
+    public func restoreLayout(_ tree: ExternalTreeNode, tabs: [Tab]) throws {
+        let metadata = Dictionary(uniqueKeysWithValues: tabs.map { ($0.id.id.uuidString, $0) })
+        func identifier(_ value: String) throws -> UUID {
+            guard let id = UUID(uuidString: value) else { throw LayoutRestoreError.invalidIdentifier }
+            return id
+        }
+        func restore(_ tree: ExternalTreeNode) throws -> SplitNode {
+            switch tree {
+            case .pane(let pane):
+                let items = try pane.tabs.map { value -> TabItem in
+                    guard let tab = metadata[value.id] else { throw LayoutRestoreError.missingTab }
+                    return TabItem(id: tab.id.id, title: tab.title, icon: tab.icon, isDirty: tab.isDirty)
+                }
+                let active = try pane.selectedTabId.map(identifier)
+                guard active == nil || items.contains(where: { $0.id == active }) else {
+                    throw LayoutRestoreError.missingTab
+                }
+                let restored = PaneState(id: PaneID(id: try identifier(pane.id)), tabs: items, selectedTabId: active)
+                restored.selectedTabId = active
+                return .pane(restored)
+            case .split(let split):
+                guard ["horizontal", "vertical"].contains(split.orientation),
+                      split.dividerPosition.isFinite, split.dividerPosition > 0, split.dividerPosition < 1 else {
+                    throw LayoutRestoreError.invalidSplit
+                }
+                return .split(SplitState(id: try identifier(split.id),
+                    orientation: split.orientation == "horizontal" ? .horizontal : .vertical,
+                    first: try restore(split.first), second: try restore(split.second),
+                    dividerPosition: split.dividerPosition))
+            }
+        }
+        let root = try restore(tree)
+        internalController.unzoom()
+        internalController.rootNode = root
+        internalController.focusedPaneId = root.allPaneIds.first
+    }
+
     // MARK: - Tab Operations
 
     /// Create a new tab in the focused pane (or specified pane)
@@ -545,4 +582,8 @@ public final class BonsplitController {
         let tab = Tab(from: tabItem)
         delegate?.splitTabBar(self, didSelectTab: tab, inPane: pane.id)
     }
+}
+
+public enum LayoutRestoreError: Error {
+    case invalidIdentifier, missingTab, invalidSplit
 }
