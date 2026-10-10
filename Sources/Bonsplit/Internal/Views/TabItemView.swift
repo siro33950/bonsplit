@@ -4,6 +4,7 @@ import SwiftUI
 struct TabItemView: View {
     let tab: TabItem
     let isSelected: Bool
+    let selectedIndicatorColor: Color
     let onSelect: () -> Void
     let onClose: () -> Void
 
@@ -76,7 +77,7 @@ struct TabItemView: View {
             // Top accent indicator for selected tab
             if isSelected {
                 Rectangle()
-                    .fill(Color.accentColor)
+                    .fill(selectedIndicatorColor)
                     .frame(height: TabBarMetrics.activeIndicatorHeight)
             }
 

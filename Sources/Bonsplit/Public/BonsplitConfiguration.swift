@@ -114,6 +114,9 @@ extension BonsplitConfiguration {
         /// Height of the tab bar
         public var tabBarHeight: CGFloat
 
+        /// Color of the selected tab indicator in each pane.
+        public var selectedTabIndicatorColor: Color
+
         // MARK: - Tabs
 
         /// Minimum width of a tab
@@ -165,6 +168,7 @@ extension BonsplitConfiguration {
 
         public init(
             tabBarHeight: CGFloat = 33,
+            selectedTabIndicatorColor: Color = .accentColor,
             tabMinWidth: CGFloat = 140,
             tabMaxWidth: CGFloat = 220,
             tabSpacing: CGFloat = 0,
@@ -175,6 +179,7 @@ extension BonsplitConfiguration {
             enableAnimations: Bool = true
         ) {
             self.tabBarHeight = tabBarHeight
+            self.selectedTabIndicatorColor = selectedTabIndicatorColor
             self.tabMinWidth = tabMinWidth
             self.tabMaxWidth = tabMaxWidth
             self.tabSpacing = tabSpacing

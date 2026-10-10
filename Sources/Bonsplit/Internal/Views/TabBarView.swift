@@ -103,6 +103,7 @@ struct TabBarView: View {
         TabItemView(
             tab: tab,
             isSelected: pane.selectedTabId == tab.id,
+            selectedIndicatorColor: controller.configuration.appearance.selectedTabIndicatorColor,
             onSelect: {
                 withAnimation(.easeInOut(duration: TabBarMetrics.selectionDuration)) {
                     pane.selectTab(tab.id)
