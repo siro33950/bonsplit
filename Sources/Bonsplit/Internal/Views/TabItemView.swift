@@ -53,6 +53,8 @@ struct TabItemView: View {
         .accessibilityLabel(tab.title)
         .accessibilityValue(tab.isDirty ? "Modified" : "")
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+        .accessibilityAction { onSelect() }
+        .accessibilityAction(named: Text("Close Tab")) { onClose() }
     }
 
     // MARK: - Tab Background
