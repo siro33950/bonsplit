@@ -126,12 +126,12 @@ final class SplitViewController {
                     newPane = PaneState(tabs: [])
                 }
 
-                // Start with divider at the edge so there's no flash before animation
+                // Persist the target ratio; SplitContainerView animates from the edge.
                 let splitState = SplitState(
                     orientation: orientation,
                     first: .pane(paneState),
                     second: .pane(newPane),
-                    dividerPosition: 1.0,  // Start at edge (will animate to 0.5)
+                    dividerPosition: 0.5,
                     animationOrigin: .fromSecond  // New pane slides in from right/bottom
                 )
 
@@ -184,24 +184,24 @@ final class SplitViewController {
                 // Create new pane with the tab
                 let newPane = PaneState(tabs: [tab])
 
-                // Start with divider at the edge so there's no flash before animation
+                // Persist the target ratio; SplitContainerView animates from the edge.
                 let splitState: SplitState
                 if insertFirst {
-                    // New pane goes first (left or top) - starts at 0, animates to 0.5
+                    // New pane goes first (left or top).
                     splitState = SplitState(
                         orientation: orientation,
                         first: .pane(newPane),
                         second: .pane(paneState),
-                        dividerPosition: 0.0,
+                        dividerPosition: 0.5,
                         animationOrigin: .fromFirst
                     )
                 } else {
-                    // New pane goes second (right or bottom) - starts at 1, animates to 0.5
+                    // New pane goes second (right or bottom).
                     splitState = SplitState(
                         orientation: orientation,
                         first: .pane(paneState),
                         second: .pane(newPane),
-                        dividerPosition: 1.0,
+                        dividerPosition: 0.5,
                         animationOrigin: .fromSecond
                     )
                 }
@@ -311,6 +311,18 @@ final class SplitViewController {
             pane.insertTab(tab, at: index)
         } else {
             pane.addTab(tab)
+        }
+    }
+
+    func moveTabToSplit(_ tab: TabItem, from sourcePaneId: PaneID, to targetPaneId: PaneID,
+                        orientation: SplitOrientation, insertFirst: Bool) {
+        guard let sourcePane = rootNode.findPane(sourcePaneId),
+              rootNode.findPane(targetPaneId) != nil,
+              sourcePane.tabs.contains(where: { $0.id == tab.id }) else { return }
+        sourcePane.removeTab(tab.id)
+        splitPaneWithTab(targetPaneId, orientation: orientation, tab: tab, insertFirst: insertFirst)
+        if sourcePane.tabs.isEmpty && rootNode.allPaneIds.count > 1 {
+            closePane(sourcePaneId)
         }
     }
 

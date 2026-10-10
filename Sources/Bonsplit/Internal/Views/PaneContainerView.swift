@@ -243,23 +243,9 @@ struct UnifiedPaneDropDelegate: DropDelegate {
                         controller.moveTab(transfer.tab, from: sourcePaneId, to: pane.id, atIndex: nil)
                     }
                 } else if let orientation = zone.orientation {
-                    // Drop on edge - create a split (120fps animation handled by SplitAnimator)
-                    // Remove tab from source first
-                    if let sourcePane = controller.rootNode.findPane(sourcePaneId) {
-                        sourcePane.removeTab(transfer.tab.id)
-
-                        // Close empty source pane if not the only one
-                        if sourcePane.tabs.isEmpty && controller.rootNode.allPaneIds.count > 1 {
-                            controller.closePane(sourcePaneId)
-                        }
-                    }
-
-                    // Create the split
-                    controller.splitPaneWithTab(
-                        pane.id,
-                        orientation: orientation,
-                        tab: transfer.tab,
-                        insertFirst: zone.insertsFirst
+                    controller.moveTabToSplit(
+                        transfer.tab, from: sourcePaneId, to: pane.id,
+                        orientation: orientation, insertFirst: zone.insertsFirst
                     )
                 }
             }

@@ -184,6 +184,46 @@ final class BonsplitTests: XCTestCase {
         XCTAssertTrue(BonsplitConfiguration(preserveZoomOnNavigation: true).preserveZoomOnNavigation)
     }
 
+    @MainActor
+    func testDroppingOnlyTabOnOwnEdgePreservesEveryTab() {
+        for orientation in [SplitOrientation.horizontal, .vertical] {
+            for insertFirst in [true, false] {
+                let (controller, pane, _) = makeTwoPaneController()
+                let internalController = controller.internalController
+                let original = Set(internalController.rootNode.allPanes.flatMap { $0.tabs.map(\.id) })
+                let tab = internalController.rootNode.findPane(pane)!.tabs[0]
+                internalController.moveTabToSplit(tab, from: pane, to: pane,
+                    orientation: orientation, insertFirst: insertFirst)
+                XCTAssertEqual(Set(internalController.rootNode.allPanes.flatMap { $0.tabs.map(\.id) }), original)
+                XCTAssertEqual(internalController.rootNode.allPaneIds.count, 2)
+            }
+        }
+    }
+
+    @MainActor
+    func testNewSplitsExposePersistableRatioBeforeViewAnimation() {
+        for orientation in [SplitOrientation.horizontal, .vertical] {
+            for insertFirst in [true, false] {
+                let controller = BonsplitController()
+                let pane = controller.focusedPaneId!
+                let tabID = controller.createTab(title: "Moved")!
+                let tab = controller.internalController.rootNode.findPane(pane)!.tabs.first { $0.id == tabID.id }!
+                controller.internalController.moveTabToSplit(tab, from: pane, to: pane,
+                    orientation: orientation, insertFirst: insertFirst)
+                guard case .split(let split) = controller.treeSnapshot() else {
+                    return XCTFail("Expected a split")
+                }
+                XCTAssertEqual(split.dividerPosition, 0.5)
+            }
+            let controller = BonsplitController()
+            controller.splitPane(controller.focusedPaneId!, orientation: orientation)
+            guard case .split(let split) = controller.treeSnapshot() else {
+                return XCTFail("Expected a split")
+            }
+            XCTAssertEqual(split.dividerPosition, 0.5)
+        }
+    }
+
     // MARK: - Test Helpers
 
     @MainActor
