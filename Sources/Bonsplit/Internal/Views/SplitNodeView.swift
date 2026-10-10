@@ -3,6 +3,7 @@ import AppKit
 
 /// Recursively renders a split node (pane or split)
 struct SplitNodeView<Content: View, EmptyContent: View>: View {
+    @Environment(BonsplitController.self) private var publicController
     @Environment(SplitViewController.self) private var controller
     
     let node: SplitNode
@@ -28,6 +29,7 @@ struct SplitNodeView<Content: View, EmptyContent: View>: View {
             SplitContainerView(
                 splitState: splitState,
                 controller: controller,
+            publicController: publicController,
                 contentBuilder: contentBuilder,
                 emptyPaneBuilder: emptyPaneBuilder,
                 showSplitButtons: showSplitButtons,
@@ -40,6 +42,7 @@ struct SplitNodeView<Content: View, EmptyContent: View>: View {
 
 /// Wrapper that uses NSHostingController for proper AppKit layout constraints
 struct SinglePaneWrapper<Content: View, EmptyContent: View>: NSViewRepresentable {
+    @Environment(BonsplitController.self) private var publicController
     @Environment(SplitViewController.self) private var controller
     
     let pane: PaneState
@@ -52,6 +55,7 @@ struct SinglePaneWrapper<Content: View, EmptyContent: View>: NSViewRepresentable
         let paneView = PaneContainerView(
             pane: pane,
             controller: controller,
+            publicController: publicController,
             contentBuilder: contentBuilder,
             emptyPaneBuilder: emptyPaneBuilder,
             showSplitButtons: showSplitButtons,
@@ -80,6 +84,7 @@ struct SinglePaneWrapper<Content: View, EmptyContent: View>: NSViewRepresentable
         let paneView = PaneContainerView(
             pane: pane,
             controller: controller,
+            publicController: publicController,
             contentBuilder: contentBuilder,
             emptyPaneBuilder: emptyPaneBuilder,
             showSplitButtons: showSplitButtons,

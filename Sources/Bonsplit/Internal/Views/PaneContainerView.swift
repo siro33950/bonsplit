@@ -29,6 +29,7 @@ enum DropZone: Equatable {
 struct PaneContainerView<Content: View, EmptyContent: View>: View {
     @Bindable var pane: PaneState
     let controller: SplitViewController
+    let publicController: BonsplitController
     let contentBuilder: (TabItem, PaneID) -> Content
     let emptyPaneBuilder: (PaneID) -> EmptyContent
     var showSplitButtons: Bool = true
@@ -48,6 +49,9 @@ struct PaneContainerView<Content: View, EmptyContent: View>: View {
                 isFocused: isFocused,
                 showSplitButtons: showSplitButtons
             )
+
+            .environment(publicController)
+            .environment(controller)
 
             // Content area with drop zones
             contentAreaWithDropZones

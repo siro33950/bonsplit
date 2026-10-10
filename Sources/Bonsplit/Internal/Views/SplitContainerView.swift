@@ -5,6 +5,7 @@ import AppKit
 struct SplitContainerView<Content: View, EmptyContent: View>: NSViewRepresentable {
     @Bindable var splitState: SplitState
     let controller: SplitViewController
+    let publicController: BonsplitController
     let contentBuilder: (TabItem, PaneID) -> Content
     let emptyPaneBuilder: (PaneID) -> EmptyContent
     var showSplitButtons: Bool = true
@@ -128,6 +129,7 @@ struct SplitContainerView<Content: View, EmptyContent: View>: NSViewRepresentabl
             PaneContainerView(
                 pane: paneState,
                 controller: controller,
+                publicController: publicController,
                 contentBuilder: contentBuilder,
                 emptyPaneBuilder: emptyPaneBuilder,
                 showSplitButtons: showSplitButtons,
@@ -137,6 +139,7 @@ struct SplitContainerView<Content: View, EmptyContent: View>: NSViewRepresentabl
             SplitContainerView(
                 splitState: nestedSplitState,
                 controller: controller,
+                publicController: publicController,
                 contentBuilder: contentBuilder,
                 emptyPaneBuilder: emptyPaneBuilder,
                 showSplitButtons: showSplitButtons,
