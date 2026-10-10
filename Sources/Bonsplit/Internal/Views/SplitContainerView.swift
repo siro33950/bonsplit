@@ -18,7 +18,7 @@ struct SplitContainerView<Content: View, EmptyContent: View>: NSViewRepresentabl
     }
 
     func makeNSView(context: Context) -> NSSplitView {
-        let splitView = NSSplitView()
+        let splitView = InitialLayoutSplitView()
         splitView.isVertical = splitState.orientation == .horizontal
         splitView.dividerStyle = .thin
         splitView.delegate = context.coordinator
@@ -50,8 +50,7 @@ struct SplitContainerView<Content: View, EmptyContent: View>: NSViewRepresentabl
             context.coordinator.isAnimating = true
         }
 
-        // Wait for view to be added to window
-        DispatchQueue.main.async {
+        splitView.onFirstLayout = { splitView in
             let totalSize = splitState.orientation == .horizontal
                 ? splitView.bounds.width
                 : splitView.bounds.height
@@ -241,5 +240,17 @@ struct SplitContainerView<Content: View, EmptyContent: View>: NSViewRepresentabl
                 : splitView.bounds.height
             return min(proposedMaximumPosition, totalSize - TabBarMetrics.minimumPaneWidth)
         }
+    }
+}
+
+@MainActor
+final class InitialLayoutSplitView: NSSplitView {
+    var onFirstLayout: ((NSSplitView) -> Void)?
+
+    override func layout() {
+        super.layout()
+        guard bounds.width > 0, bounds.height > 0, let initialize = onFirstLayout else { return }
+        onFirstLayout = nil
+        initialize(self)
     }
 }

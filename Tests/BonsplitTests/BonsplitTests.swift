@@ -1,7 +1,22 @@
+import AppKit
 import XCTest
 @testable import Bonsplit
 
 final class BonsplitTests: XCTestCase {
+
+    @MainActor
+    func testSplitInitializationWaitsForNonzeroLayoutAndRunsOnce() {
+        let view = InitialLayoutSplitView(frame: .zero)
+        var sizes: [CGSize] = []
+        view.onFirstLayout = { sizes.append($0.bounds.size) }
+        view.layout()
+        XCTAssertTrue(sizes.isEmpty)
+        view.setFrameSize(CGSize(width: 800, height: 600))
+        view.layout()
+        view.setFrameSize(CGSize(width: 1000, height: 700))
+        view.layout()
+        XCTAssertEqual(sizes, [CGSize(width: 800, height: 600)])
+    }
 
     @MainActor
     func testControllerCreation() {
