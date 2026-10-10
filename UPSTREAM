@@ -1,0 +1,4 @@
+https://github.com/almonk/bonsplit
+Commit: 77b9ccebf1c6e6533c3df1030b5efa9a3db2f351
+License: MIT (see LICENSE)
+Local changes: tab bar accessory immediately after tabs, layout restoration, public UUID identifiers, accessible tab selection and closing, safe edge-drop ordering and persistable split ratios, propagation of the public controller across hosting boundaries, safe areas owned by the embedding view, split initialization after nonzero layout, split dividers using the tab separator color.

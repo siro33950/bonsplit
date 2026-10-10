@@ -245,6 +245,7 @@ struct SplitContainerView<Content: View, EmptyContent: View>: NSViewRepresentabl
 
 @MainActor
 final class InitialLayoutSplitView: NSSplitView {
+    override var dividerColor: NSColor { .separatorColor }
     var onFirstLayout: ((NSSplitView) -> Void)?
 
     override func layout() {
