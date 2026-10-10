@@ -16,6 +16,8 @@ public final class BonsplitController {
     /// Configuration for behavior and appearance
     public var configuration: BonsplitConfiguration
 
+    public var tabBarAccessory: ((PaneID) -> AnyView)?
+
     // MARK: - Internal State
 
     internal var internalController: SplitViewController

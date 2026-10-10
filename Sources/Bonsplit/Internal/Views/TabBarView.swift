@@ -40,6 +40,10 @@ struct TabBarView: View {
                                     .id(tab.id)
                             }
 
+                            if let accessory = controller.tabBarAccessory {
+                                accessory(pane.id)
+                            }
+
                             // Drop zone at end of tabs
                             dropZoneAtEnd
                         }
@@ -80,8 +84,6 @@ struct TabBarView: View {
                 .frame(height: TabBarMetrics.barHeight)
                 .overlay(fadeOverlays)
             }
-
-            Spacer()
 
             // Split buttons
             if showSplitButtons {
