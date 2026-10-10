@@ -62,6 +62,7 @@ struct SinglePaneWrapper<Content: View, EmptyContent: View>: NSViewRepresentable
             contentViewLifecycle: contentViewLifecycle
         )
         let hostingController = NSHostingController(rootView: paneView)
+        hostingController.safeAreaRegions = []
         hostingController.view.translatesAutoresizingMaskIntoConstraints = false
 
         let containerView = NSView()

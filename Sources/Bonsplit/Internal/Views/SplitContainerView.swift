@@ -111,6 +111,7 @@ struct SplitContainerView<Content: View, EmptyContent: View>: NSViewRepresentabl
 
     private func makeHostingView(for node: SplitNode) -> NSView {
         let hostingController = NSHostingController(rootView: AnyView(makeView(for: node)))
+        hostingController.safeAreaRegions = []
         hostingController.view.translatesAutoresizingMaskIntoConstraints = false
         return hostingController.view
     }
