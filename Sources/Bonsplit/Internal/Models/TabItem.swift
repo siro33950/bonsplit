@@ -18,18 +18,22 @@ struct TabItem: Identifiable, Hashable, Codable {
     let id: UUID
     var title: String
     var icon: String?
+    var iconTint: TabIconTint?
+    var iconColor: Color? { iconTint.map { Color(red: $0.red, green: $0.green, blue: $0.blue, opacity: $0.opacity) } }
     var isDirty: Bool
 
     init(
         id: UUID = UUID(),
         title: String,
         icon: String? = "doc.text",
-        isDirty: Bool = false
+        isDirty: Bool = false,
+        iconColor: Color? = nil
     ) {
         self.id = id
         self.title = title
         self.icon = icon
         self.isDirty = isDirty
+        self.iconTint = iconColor.map(TabIconTint.init)
     }
 
     func hash(into hasher: inout Hasher) {
@@ -56,5 +60,20 @@ struct TabTransferData: Codable, Transferable {
 
     static var transferRepresentation: some TransferRepresentation {
         CodableRepresentation(contentType: .tabTransfer)
+    }
+}
+
+struct TabIconTint: Codable, Hashable {
+    var red: Double
+    var green: Double
+    var blue: Double
+    var opacity: Double
+
+    init(_ color: Color) {
+        let value = NSColor(color).usingColorSpace(.sRGB)!
+        red = value.redComponent
+        green = value.greenComponent
+        blue = value.blueComponent
+        opacity = value.alphaComponent
     }
 }

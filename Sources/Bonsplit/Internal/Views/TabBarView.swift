@@ -87,13 +87,13 @@ struct TabBarView: View {
 
             // Split buttons
             if showSplitButtons {
-                splitButtons
+                splitButtons.saturation(shouldShowFullSaturation ? 1 : 0)
             }
         }
         .frame(height: TabBarMetrics.barHeight)
         .contentShape(Rectangle())
         .background(tabBarBackground)
-        .saturation(shouldShowFullSaturation ? 1.0 : 0)
+
     }
 
     // MARK: - Tab Item
@@ -103,6 +103,7 @@ struct TabBarView: View {
         TabItemView(
             tab: tab,
             isSelected: pane.selectedTabId == tab.id,
+            isSaturated: shouldShowFullSaturation,
             selectedIndicatorColor: controller.configuration.appearance.selectedTabIndicatorColor,
             onSelect: {
                 withAnimation(.easeInOut(duration: TabBarMetrics.selectionDuration)) {
@@ -116,6 +117,7 @@ struct TabBarView: View {
                 }
             }
         )
+        .contextMenu { controller.tabContextMenu?(TabID(id: tab.id)) }
         .onDrag {
             createItemProvider(for: tab)
         } preview: {

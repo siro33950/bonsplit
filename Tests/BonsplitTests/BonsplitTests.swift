@@ -1,4 +1,5 @@
 import AppKit
+import SwiftUI
 import XCTest
 @testable import Bonsplit
 
@@ -61,6 +62,21 @@ final class BonsplitTests: XCTestCase {
 
         XCTAssertTrue(closed)
         XCTAssertNil(controller.tab(tabId))
+    }
+
+    @MainActor
+    func test_タブ整理_空ペインの維持を指定した場合だけ分割を保つ() throws {
+        for preservingPane in [false, true] {
+            // Given
+            let (controller, first, second) = makeTwoPaneController()
+            let tab = try XCTUnwrap(controller.createTab(title: "Preparing", inPane: second))
+            // When
+            XCTAssertTrue(controller.closeTab(tab, preservingPane: preservingPane))
+            // Then
+            XCTAssertNil(controller.tab(tab))
+            XCTAssertTrue(controller.allPaneIds.contains(first))
+            XCTAssertEqual(controller.allPaneIds.contains(second), preservingPane)
+        }
     }
 
     @MainActor
@@ -272,5 +288,42 @@ final class BonsplitTests: XCTestCase {
             split.dividerPosition = 0.5
         }
         return (controller, paneA, paneB)
+    }
+}
+
+extension BonsplitTests {
+    @MainActor
+    func testIconColorUpdatesClearsAndSurvivesTransferAndRestore() throws {
+        let controller = BonsplitController()
+        let id = try XCTUnwrap(controller.createTab(title: "Session", icon: "sparkle", iconColor: .yellow))
+        func rgba(_ color: Color?) throws -> NSColor {
+            try XCTUnwrap(color.map(NSColor.init)?.usingColorSpace(.sRGB))
+        }
+        XCTAssertEqual(try rgba(controller.tab(id)?.iconColor), try rgba(.yellow))
+        controller.updateTab(id, title: "Renamed", iconColor: .some(.blue))
+        XCTAssertEqual(try rgba(controller.tab(id)?.iconColor), try rgba(.blue))
+        let pane = try XCTUnwrap(controller.internalController.rootNode.findPane(controller.allPaneIds[0]))
+        let item = try XCTUnwrap(pane.tabs.first { $0.id == id.id })
+        let decoded = try JSONDecoder().decode(TabItem.self, from: JSONEncoder().encode(item))
+        XCTAssertEqual(try rgba(decoded.iconColor), try rgba(.blue))
+        let restored = BonsplitController()
+        try restored.restoreLayout(controller.treeSnapshot(), tabs: controller.allTabIds.compactMap { controller.tab($0) })
+        XCTAssertEqual(try rgba(restored.tab(id)?.iconColor), try rgba(.blue))
+        controller.updateTab(id, iconColor: .some(nil))
+        XCTAssertNil(controller.tab(id)?.iconColor)
+        XCTAssertEqual(controller.tab(id)?.title, "Renamed")
+    }
+
+    @MainActor
+    func testTabContextMenuReceivesTabIdentity() throws {
+        let controller = BonsplitController()
+        let id = try XCTUnwrap(controller.createTab(title: "Session"))
+        var received: TabID?
+        controller.tabContextMenu = { tab in
+            received = tab
+            return AnyView(Text("Rename"))
+        }
+        _ = controller.tabContextMenu?(id)
+        XCTAssertEqual(received, id)
     }
 }
