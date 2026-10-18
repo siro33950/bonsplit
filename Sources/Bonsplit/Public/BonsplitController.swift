@@ -16,6 +16,8 @@ public final class BonsplitController {
     /// Configuration for behavior and appearance
     public var configuration: BonsplitConfiguration
 
+    public var tabContextMenu: ((TabID) -> AnyView)?
+
     public var tabBarAccessory: ((PaneID) -> AnyView)?
 
     // MARK: - Internal State
@@ -41,7 +43,7 @@ public final class BonsplitController {
             case .pane(let pane):
                 let items = try pane.tabs.map { value -> TabItem in
                     guard let tab = metadata[value.id] else { throw LayoutRestoreError.missingTab }
-                    return TabItem(id: tab.id.id, title: tab.title, icon: tab.icon, isDirty: tab.isDirty)
+                    return TabItem(id: tab.id.id, title: tab.title, icon: tab.icon, isDirty: tab.isDirty, iconColor: tab.iconColor)
                 }
                 let active = try pane.selectedTabId.map(identifier)
                 guard active == nil || items.contains(where: { $0.id == active }) else {
@@ -81,10 +83,11 @@ public final class BonsplitController {
         title: String,
         icon: String? = "doc.text",
         isDirty: Bool = false,
+        iconColor: Color? = nil,
         inPane pane: PaneID? = nil
     ) -> TabID? {
         let tabId = TabID()
-        let tab = Tab(id: tabId, title: title, icon: icon, isDirty: isDirty)
+        let tab = Tab(id: tabId, title: title, icon: icon, isDirty: isDirty, iconColor: iconColor)
         let targetPane = pane ?? focusedPaneId ?? PaneID(id: internalController.rootNode.allPaneIds.first!.id)
 
         // Check with delegate
@@ -110,7 +113,7 @@ public final class BonsplitController {
         }
 
         // Create internal TabItem
-        let tabItem = TabItem(id: tabId.id, title: title, icon: icon, isDirty: isDirty)
+        let tabItem = TabItem(id: tabId.id, title: title, icon: icon, isDirty: isDirty, iconColor: iconColor)
         internalController.addTab(tabItem, toPane: PaneID(id: targetPane.id), atIndex: insertIndex)
 
         // Notify delegate
@@ -129,7 +132,8 @@ public final class BonsplitController {
         _ tabId: TabID,
         title: String? = nil,
         icon: String?? = nil,
-        isDirty: Bool? = nil
+        isDirty: Bool? = nil,
+        iconColor: Color?? = nil
     ) {
         guard let (pane, tabIndex) = findTabInternal(tabId) else { return }
 
@@ -138,6 +142,9 @@ public final class BonsplitController {
         }
         if let icon = icon {
             pane.tabs[tabIndex].icon = icon
+        }
+        if let iconColor {
+            pane.tabs[tabIndex].iconTint = iconColor.map(TabIconTint.init)
         }
         if let isDirty = isDirty {
             pane.tabs[tabIndex].isDirty = isDirty
@@ -148,9 +155,9 @@ public final class BonsplitController {
     /// - Parameter tabId: The tab to close
     /// - Returns: true if the tab was closed, false if vetoed by delegate
     @discardableResult
-    public func closeTab(_ tabId: TabID) -> Bool {
+    public func closeTab(_ tabId: TabID, preservingPane: Bool = false) -> Bool {
         guard let (pane, tabIndex) = findTabInternal(tabId) else { return false }
-        return closeTab(tabId, with: tabIndex, in: pane)
+        return closeTab(tabId, with: tabIndex, in: pane, preservingPane: preservingPane)
     }
     
     /// Close a tab by ID in a specific pane.
@@ -169,7 +176,7 @@ public final class BonsplitController {
     /// - Parameter tabId: The tab to close
     /// - Parameter tabIndex: The position of the tab within the pane
     /// - Parameter pane: The pane in which to close the tab
-    private func closeTab(_ tabId: TabID, with tabIndex: Int, in pane: PaneState) -> Bool {
+    private func closeTab(_ tabId: TabID, with tabIndex: Int, in pane: PaneState, preservingPane: Bool = false) -> Bool {
         let tabItem = pane.tabs[tabIndex]
         let tab = Tab(from: tabItem)
         let paneId = pane.id
@@ -179,7 +186,7 @@ public final class BonsplitController {
             return false
         }
 
-        internalController.closeTab(tabId.id, inPane: pane.id)
+        internalController.closeTab(tabId.id, inPane: pane.id, preservingPane: preservingPane)
 
         // Notify delegate
         delegate?.splitTabBar(self, didCloseTab: tabId, fromPane: paneId)
@@ -278,7 +285,7 @@ public final class BonsplitController {
 
         let internalTab: TabItem?
         if let tab {
-            internalTab = TabItem(id: tab.id.id, title: tab.title, icon: tab.icon, isDirty: tab.isDirty)
+            internalTab = TabItem(id: tab.id.id, title: tab.title, icon: tab.icon, isDirty: tab.isDirty, iconColor: tab.iconColor)
         } else {
             internalTab = nil
         }

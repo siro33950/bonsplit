@@ -9,6 +9,7 @@ struct TabDragPreview: View {
             if let iconName = tab.icon {
                 Image(systemName: iconName)
                     .font(.system(size: TabBarMetrics.iconSize))
+                    .foregroundStyle(tab.iconColor ?? TabBarColors.activeText)
             }
 
             Text(tab.title)

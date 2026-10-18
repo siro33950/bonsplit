@@ -4,6 +4,7 @@ import SwiftUI
 struct TabItemView: View {
     let tab: TabItem
     let isSelected: Bool
+    var isSaturated: Bool = true
     let selectedIndicatorColor: Color
     let onSelect: () -> Void
     let onClose: () -> Void
@@ -17,7 +18,8 @@ struct TabItemView: View {
             if let iconName = tab.icon {
                 Image(systemName: iconName)
                     .font(.system(size: TabBarMetrics.iconSize))
-                    .foregroundStyle(isSelected ? TabBarColors.activeText : TabBarColors.inactiveText)
+                    .foregroundStyle(tab.iconColor ?? (isSelected ? TabBarColors.activeText : TabBarColors.inactiveText))
+                    .saturation(tab.iconColor != nil || isSaturated ? 1 : 0)
             }
 
             // Title
@@ -25,11 +27,12 @@ struct TabItemView: View {
                 .font(.system(size: TabBarMetrics.titleFontSize))
                 .lineLimit(1)
                 .foregroundStyle(isSelected ? TabBarColors.activeText : TabBarColors.inactiveText)
+                .saturation(isSaturated ? 1 : 0)
 
             Spacer(minLength: 4)
 
             // Close button or dirty indicator
-            closeOrDirtyIndicator
+            closeOrDirtyIndicator.saturation(isSaturated ? 1 : 0)
         }
         .padding(.horizontal, TabBarMetrics.tabHorizontalPadding)
         .offset(y: isSelected ? 0.5 : 0)
@@ -40,7 +43,7 @@ struct TabItemView: View {
             maxHeight: TabBarMetrics.tabHeight
         )
         .padding(.bottom, isSelected ? 1 : 0)
-        .background(tabBackground)
+        .background(tabBackground.saturation(isSaturated ? 1 : 0))
         .contentShape(Rectangle())
         .onTapGesture {
             onSelect()
